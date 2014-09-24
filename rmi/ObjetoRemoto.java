@@ -2,7 +2,8 @@ import java.io.Serializable;
 import java.rmi.*;
 import java.rmi.server.*;
 
-public class ObjetoRemoto extends UnicastRemoteObject implements InterfazRemoto, Serializable
+public class ObjetoRemoto extends UnicastRemoteObject
+implements InterfazRemoto, Serializable
 {
     public ObjetoRemoto() throws RemoteException
     {

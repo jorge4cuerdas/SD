@@ -1,85 +1,106 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
+import java.io.*;
 import java.rmi.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Cliente
 {
-    String servidor = "";
-    InterfazRemoto objetoRemoto;
-    
-    public int menu() throws IOException
+    public Cliente()
     {
-        InputStreamReader isr = new InputStreamReader(System.in);
-        BufferedReader br = new BufferedReader(isr);
         
-        System.out.println("====================================");
-        System.out.println("Bienvenido a la calculadora de vida!");
-        System.out.println("====================================");
-        System.out.println("1 Calcula los segundos vividos a partir de una edad");
-        System.out.println("2 Calcula los minutos vividos a partir de una edad");
-        System.out.println("3 Salir");
-        System.out.println("Selecciona una acción para continuar.");
-        
-        return (Integer.parseInt(br.readLine()));
     }
     
     public static void main(String[] args)
     {
+        String host;
+        String port;
         Cliente cl = new Cliente();
+        int i = 0;
         
-        InputStreamReader isr = new InputStreamReader(System.in);
-        BufferedReader br = new BufferedReader(isr);
-        
-        cl.servidor = "rmi://" + args[0] + "/" + args[1] + "/ObjetoRemoto";
-        System.setSecurityManager(new RMISecurityManager());
-        try {
-            cl.objetoRemoto = (InterfazRemoto) Naming.lookup(cl.servidor);
-        } catch (NotBoundException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (RemoteException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        int seleccion = 1;
-        int edad = 0;
-        
-        while(seleccion != 3){
-            try {
-                seleccion = cl.menu();
-            } catch (IOException ex) {
-                Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+        if(args.length < 2){
+            try{
+                System.out.println("Parametros incorrectos");
+            }
+            catch(Exception ex){
+                System.out.println("Error en los parametros");
             }
             
-            if(seleccion == 1){
-                System.out.print("Introduce tu edad: ");
-                try {
-                    edad = Integer.parseInt(br.readLine());
-                    System.out.println("Has vivido: " + cl.objetoRemoto.calcularSegundos(edad) + " segundos.");
-                } catch (IOException ex) {
-                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                
+            return;
+        }
+        
+        host = args[0];
+        port = args[1];
+        
+        while(i==0){
+            cl.menu(host, port);
+        }
+    }
+    
+    private void menu(String host, String port)
+    {
+        int opc = 0;
+        InputStreamReader ent = new InputStreamReader(System.in);
+        BufferedReader buf = new BufferedReader(ent);
+        
+        while(1!=0){
+            System.out.println("1 Calcular los segundos vividos a partir de una edad");
+            System.out.println("2 Calcular los minutos vividos a partir de una edad");
+            System.out.println("3 Salir");
+            
+            try{
+                opc = new Integer(buf.readLine()).intValue();
             }
-            else if(seleccion == 2){
-                System.out.print("Introduce tu edad: ");
-                try {
-                    edad = Integer.parseInt(br.readLine());
-                    System.out.println("Has vivido: " + cl.objetoRemoto.calcularMinutos(edad) + " minutos.");
-                } catch (IOException ex) {
-                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                
+            catch(Exception ex){
+                System.out.println("Error al leer la operacion");
+            }
+            
+            if(opc == 1){
+                operar(opc, host, port);
+            }
+            else if(opc == 2){
+                operar(opc, host, port);
             }
             else{
-                System.out.println("Hasta luego!");
-                break;
+                System.out.println("Adios!");
+                System.exit(0);
             }
         }
+    }
+    
+    private void operar(int opc, String host, String port){
+        InterfazRemoto objetoRemoto = null;
+        InputStreamReader ent = new InputStreamReader(System.in);
+        BufferedReader buf = new BufferedReader(ent);
+        int edad = 0; 
+        
+        String servidor = "rmi://"+host+":"+port+"/ObjetoRemoto";
+        
+        try{
+            System.setSecurityManager(new SecurityManager());
+            objetoRemoto = (InterfazRemoto) Naming.lookup(servidor);
+        }
+        catch(Exception ex){
+            System.out.println("Error en el naming.lookup");
+            System.exit(0);
+        }
+        
+            try{
+                System.out.println("Introduce tu edad ");
+                edad = new Integer(buf.readLine()).intValue();
+            }
+            catch(Exception ex){
+                System.out.println("Error al leer la edad");
+            }
+            
+            try{
+                if(opc == 1){
+                    System.out.println("Los segundos vividos son " + objetoRemoto.calcularSegundos(edad));
+                }
+                else{
+                    System.out.println("Los minutos vividos son " + objetoRemoto.calcularMinutos(edad));
+                }
+            }
+            catch(Exception ex)
+            {
+                System.out.println("Error al realizar la operacion");
+            }
     }
 }
